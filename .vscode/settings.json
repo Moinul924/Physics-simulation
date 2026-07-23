@@ -1,0 +1,9 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/*.jar"
+    ],
+    "code-runner.runInTerminal": true,
+    "code-runner.executorMap": {
+        "java": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Set-Location -LiteralPath '$workspaceRoot'; javac --module-path 'lib' --add-modules javafx.controls '$fileName'; java --module-path 'lib' --add-modules javafx.controls --enable-native-access=javafx.graphics '$fileNameWithoutExt'\""
+    }
+}
