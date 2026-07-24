@@ -1,65 +1,68 @@
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
 
 public class Wall extends Line {
     
-    private double wallNormalX;
-    private double wallNormalY;
-
-    private double wallVectorX;
-    private double wallVectorY;
+    private Vector normalVector;
+    private Vector tangentVector;
+    private double thickness;
 
   
 
 
-    public Wall(double startX, double startY, double endX, double endY) {
+    public Wall(double startX, double startY, double endX, double endY, double thickness, Color color) {
         super(startX, startY, endX, endY);
-    
-        
-        wallVectorX = endX - startX;
-        wallVectorY = endY - startY;
-        double wallLength = Math.hypot(wallVectorX, wallVectorY);
-        
-        wallNormalX = wallVectorY/wallLength;
-        wallNormalY = -wallVectorX/wallLength;
+        setStroke(color);
+        this.thickness = thickness;
+        tangentVector = new Vector(endX - startX, endY - startY);
+        normalVector = tangentVector.rotate90Degrees().normalize();
+        setStrokeWidth(thickness);
     }
 
     public double getWallNormalX() {
-        return wallNormalX;
+        return normalVector.getX();
     }
 
     public double getWallNormalY() {
-        return wallNormalY;
+        return normalVector.getY();
     }
 
-    public double getWallVectorX() {
-        return wallVectorX;
+    public double getWallTangentX() {
+        return tangentVector.getX();
     }
 
-    public double getWallVectorY() {
-        return wallVectorY;
+    public double getWallTangentY() {
+        return tangentVector.getY();
     }
 
+    public Vector getWallNormal() {
+        return normalVector;
+    }
+
+    public Vector getWallTangent() {
+        return tangentVector;
+    }
 
     public boolean isColliding(PhysicsCircle circle) {
         double circleX = circle.getCenterX();
         double circleY = circle.getCenterY();
         double radius = circle.getRadius();
 
-        double wallLengthSquared = wallVectorX * wallVectorX + wallVectorY * wallVectorY;
-        double t = ((circleX - getStartX()) * wallVectorX + (circleY - getStartY()) * wallVectorY) / wallLengthSquared;
+        double wallLengthSquared = (tangentVector.getX() * tangentVector.getX()) + (tangentVector.getY() * tangentVector.getY());
+        double t = tangentVector.dot(circleX - getStartX(), circleY - getStartY()) / wallLengthSquared;
 
         if (t < 0 || t > 1) {
             return false;
         }
 
-        double closestPointX = getStartX() + t * wallVectorX;
-        double closestPointY = getStartY() + t * wallVectorY;
+        double closestPointX = getStartX() + t * tangentVector.getX() - thickness / 2 * normalVector.getX();
+        double closestPointY = getStartY() + t * tangentVector.getY() - thickness / 2 * normalVector.getY();
 
         double distanceSquared = (circleX - closestPointX) * (circleX - closestPointX)
                 + (circleY - closestPointY) * (circleY - closestPointY);
 
-        return distanceSquared <= radius * radius;
+        return distanceSquared  <= radius * radius;
     }
 
     

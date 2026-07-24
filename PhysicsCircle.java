@@ -2,36 +2,42 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 public class PhysicsCircle extends Circle {
-    private double velocityX;
-    private double velocityY;
+    private Vector velocity;
     private double mass;
     private double coefficientOfRestitution;
 
     public PhysicsCircle(double centerX, double centerY, double radius, double mass, Color color) {
         super(centerX, centerY, radius);
         setFill(color);
-        this.velocityX = 0;
-        this.velocityY = 0;
+        velocity = new Vector(0, 0);
         this.mass = mass;
         this.coefficientOfRestitution = 0.5;
 
     }
 
     public void setVelocity(double velocityX, double velocityY) {
-        this.velocityX = velocityX;
-        this.velocityY = velocityY;
+        velocity.setX(velocityX);
+        velocity.setY(velocityY);
     }
 
     public double getVelocityX() {
-        return velocityX;
+        return velocity.getX();
     }
 
     public double getVelocityY() {
-        return velocityY;
+        return velocity.getY();
+    }
+
+    public Vector getVelocity() {
+        return velocity;
     }
 
     public double getCoefficientOfRestitution() {
         return coefficientOfRestitution;
+    }
+
+    public double getMass() {
+        return mass;
     }
 
 

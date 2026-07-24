@@ -4,7 +4,7 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
+
 import java.util.Random;
 import java.util.ArrayList;
 
@@ -17,43 +17,29 @@ public class Main extends Application {
     private double mouseX;
     private double mouseY;
 
+    private ArrayList<PhysicsCircle> circles = new ArrayList<>();
+    private ArrayList<Wall> walls = new ArrayList<>();
+    private Group group = new Group();
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Group group = new Group();
-        Scene scene = new Scene(group, WIDTH, HEIGHT, Color.WHITE);
-        ArrayList<PhysicsCircle> circles = new ArrayList<>();
-        ArrayList<Wall> walls = new ArrayList<>();
-
-        Wall line = new Wall(50,500,700,500);
-        Wall line2 = new Wall(700,500,700,50);
-        Wall Line3 = new Wall(700,50,50,50);
-        Wall line4 = new Wall(50,50,50,500);
-        Wall line5 = new Wall(100,120,300,200);
-        walls.add(line);
-        walls.add(line2);
-        walls.add(Line3);
-        walls.add(line4);
-        walls.add(line5);
-        group.getChildren().add(line);
-        group.getChildren().add(line2);
-        group.getChildren().add(Line3);
-        group.getChildren().add(line4);
-        group.getChildren().add(line5);
-
         
+        Scene scene = new Scene(group, WIDTH, HEIGHT, Color.BLACK);
 
-        double startX = 60;
-        double centerY = 120;
+        drawSquare(100, 50, 500, Color.GREEN);
+
+        double startX = 300;
+        double centerY = 500;
         double spacing = 70;
         double mass = 5;
         Random random = new Random();
         Color[] colors = { Color.DODGERBLUE, Color.CORNFLOWERBLUE, Color.STEELBLUE, Color.SKYBLUE, Color.LIGHTSKYBLUE };
 
-        for (int index = 0; index < 10; index++) {
+        for (int index = 0; index < 2; index++) {
 
             double x = startX + index * spacing;
             double y = centerY;
-            PhysicsCircle circle = new PhysicsCircle(100, 100, 5, mass, Color.DODGERBLUE);
+            PhysicsCircle circle = new PhysicsCircle(x, y, 5, mass, colors[index % colors.length]);
 
             circle.setOnMousePressed(event -> {
                 mouseX = event.getSceneX() - circle.getCenterX();
@@ -79,6 +65,8 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 physics.applyVelocity();
+                //physics.checkCircleCollisions();
+                
             }
         };
         timer.start();
@@ -91,5 +79,21 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
+
+    public void drawSquare(double startX,double startY,double size,Color color){
+        
+        double[] xCorners = {startX, startX + size, startX + size, startX};
+        double[] yCorners = {startY, startY, startY + size, startY + size};
+
+        for(int i = 0; i < 4;i++){
+            double x1 = xCorners[i];
+            double y1 = yCorners[i];
+            double x2 = xCorners[(i + 1) % 4];
+            double y2 = yCorners[(i + 1) % 4];
+
+            Wall wall = new Wall(x1, y1, x2, y2, 8 , color);
+            walls.add(wall);
+            group.getChildren().add(wall);
+        }
+    }
 }
