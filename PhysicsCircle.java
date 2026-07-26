@@ -32,6 +32,14 @@ public class PhysicsCircle extends Circle {
         return velocity;
     }
 
+    public void setVelocityX(double velocityX) {
+        velocity.setX(velocityX);
+    }
+
+    public void setVelocityY(double velocityY) {
+        velocity.setY(velocityY);
+    }
+
     public double getCoefficientOfRestitution() {
         return coefficientOfRestitution;
     }

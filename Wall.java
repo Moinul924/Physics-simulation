@@ -59,8 +59,7 @@ public class Wall extends Line {
         double closestPointX = getStartX() + t * tangentVector.getX() - thickness / 2 * normalVector.getX();
         double closestPointY = getStartY() + t * tangentVector.getY() - thickness / 2 * normalVector.getY();
 
-        double distanceSquared = (circleX - closestPointX) * (circleX - closestPointX)
-                + (circleY - closestPointY) * (circleY - closestPointY);
+        double distanceSquared = Math.pow(circleX - closestPointX, 2) + Math.pow(circleY - closestPointY, 2);
 
         return distanceSquared  <= radius * radius;
     }

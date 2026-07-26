@@ -42,4 +42,23 @@ public class Vector {
     public Vector rotate90Degrees() {
         return new Vector(y, -x);
     }
+
+    public void flipVector(){
+        this.x = -this.x;
+        this.y = -this.y;
+    }
+
+    public Vector subtract(Vector other) {
+        return new Vector(this.x - other.x, this.y - other.y);
+    }
+
+    public void scaleVector(double scale) {
+        this.x *= scale;
+        this.y *= scale;
+    }
+
+    public Vector scale(double scale) {
+        return new Vector(this.x * scale, this.y * scale);
+    }
+
 }

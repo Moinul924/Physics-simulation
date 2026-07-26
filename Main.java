@@ -4,6 +4,10 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Text;
+import javafx.scene.text.Font;
 
 import java.util.Random;
 import java.util.ArrayList;
@@ -11,6 +15,7 @@ import java.util.ArrayList;
 
 public class Main extends Application {
 
+    private static Random random = new Random();
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
 
@@ -19,54 +24,51 @@ public class Main extends Application {
 
     private ArrayList<PhysicsCircle> circles = new ArrayList<>();
     private ArrayList<Wall> walls = new ArrayList<>();
+    private Physics physics = new Physics(circles, walls);
     private Group group = new Group();
+    private int numberOfParticles = 0;
+    private int hue = 0;
+    private boolean isSpawning = false;
+    private double frameCount = 0;
+   
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         
+        Text uiText = new Text(20, 30, "Particles: 0");
+        uiText.setFill(Color.WHITE);
+        uiText.setFont(new Font(20));
+        group.getChildren().add(uiText);
         Scene scene = new Scene(group, WIDTH, HEIGHT, Color.BLACK);
 
-        drawSquare(100, 50, 500, Color.GREEN);
+       scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                isSpawning = true;
+            }
+ 
+        });
 
-        double startX = 300;
-        double centerY = 500;
-        double spacing = 70;
-        double mass = 5;
-        Random random = new Random();
-        Color[] colors = { Color.DODGERBLUE, Color.CORNFLOWERBLUE, Color.STEELBLUE, Color.SKYBLUE, Color.LIGHTSKYBLUE };
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                isSpawning = false;
+            }
+        });
 
-        for (int index = 0; index < 2; index++) {
+        
 
-            double x = startX + index * spacing;
-            double y = centerY;
-            PhysicsCircle circle = new PhysicsCircle(x, y, 5, mass, colors[index % colors.length]);
+        drawSquare(100, 50, 400, Color.GREEN);
 
-            circle.setOnMousePressed(event -> {
-                mouseX = event.getSceneX() - circle.getCenterX();
-                mouseY = event.getSceneY() - circle.getCenterY();
-                circle.setVelocity(0, 0);
-
-            });
-
-            circle.setOnMouseDragged(event -> {
-                circle.setCenterX(event.getSceneX() - mouseX);
-                circle.setCenterY(event.getSceneY() - mouseY);
-            });
-
-            circle.setVelocity((random.nextDouble() ),(random.nextDouble()));
-
-            circles.add(circle);
-            group.getChildren().add(circle);
-        }
-
-        Physics physics = new Physics(circles, walls);
+        
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                physics.applyVelocity();
-                //physics.checkCircleCollisions();
-                
+                frameCount++;
+                if (isSpawning && frameCount % 5 == 0) {
+                    createPartical(150, 70, 1, 10); 
+                }
+                physics.updatePhysics(10);
+                uiText.setText("Particals: "+ numberOfParticles);
             }
         };
         timer.start();
@@ -75,6 +77,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
 
     public static void main(String[] args) {
         launch(args);
@@ -96,4 +99,38 @@ public class Main extends Application {
             group.getChildren().add(wall);
         }
     }
+
+
+
+    public void createPartical(double locationX, double locationY, double mass, double radius){      
+        Color particleColor = getParticleColor();
+        PhysicsCircle partical = new PhysicsCircle(locationX, locationY, radius, mass, particleColor);
+
+        partical.setOnMousePressed(event -> {
+            mouseX = event.getSceneX() - partical.getCenterX();
+            mouseY = event.getSceneY() - partical.getCenterY();
+            partical.setVelocity(0, 0);
+        });
+
+        partical.setOnMouseDragged(event -> {
+            partical.setCenterX(event.getSceneX() - mouseX);
+            partical.setCenterY(event.getSceneY() - mouseY);
+        });
+
+        partical.setVelocity(8,3);
+
+        group.getChildren().add(partical);
+        physics.addCircle(partical);
+        numberOfParticles++;      
+    }
+
+    public Color getParticleColor() {
+        if(numberOfParticles % 20 == 0) {
+            hue = (hue + 5)% 360;
+        }
+        Color particleColor = Color.hsb(hue,0.97,0.94);
+        return particleColor;
+    }
+
+
 }
