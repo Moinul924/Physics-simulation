@@ -1,36 +1,12 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
             "type": "java",
-            "name": "Main",
+            "name": "Run Physics Simulation",
             "request": "launch",
-            "mainClass": "Main",
-            "projectName": "2D physics Engine_6537c6b0",
-            "vmArgs": "--module-path \"${workspaceFolder}\\lib\" --add-modules javafx.controls --enable-native-access=javafx.graphics"
-        },
-        {
-            "type": "java",
-            "name": "main",
-            "request": "launch",
-            "mainClass": "main",
-            "projectName": "2D physics Engine_6537c6b0",
-            "vmArgs": "--module-path \"${workspaceFolder}\\lib\" --add-modules javafx.controls --enable-native-access=javafx.graphics"
-        },
-        {
-            "type": "java",
-            "name": "Current File",
-            "request": "launch",
-            "mainClass": "${file}"
-        },
-        {
-            "type": "java",
-            "name": "Launch JavaFX",
-            "request": "launch",
-            "mainClass": "main",
+            "mainClass": "ParticleSimulation.Main",
+            "projectName": "Physics-simulation_391d8586",
             "vmArgs": "--module-path \"${workspaceFolder}\\lib\" --add-modules javafx.controls --enable-native-access=javafx.graphics"
         }
     ]

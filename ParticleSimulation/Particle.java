@@ -1,12 +1,13 @@
+package ParticleSimulation;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class PhysicsCircle extends Circle {
+public class Particle extends Circle {
     private Vector velocity;
     private double mass;
     private double coefficientOfRestitution;
 
-    public PhysicsCircle(double centerX, double centerY, double radius, double mass, Color color) {
+    public Particle(double centerX, double centerY, double radius, double mass, Color color) {
         super(centerX, centerY, radius);
         setFill(color);
         velocity = new Vector(0, 0);

@@ -1,8 +1,9 @@
+package ParticleSimulation;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
 
-public class Wall extends Line {
+public class Surface extends Line {
     
     private Vector normalVector;
     private Vector tangentVector;
@@ -11,7 +12,7 @@ public class Wall extends Line {
   
 
 
-    public Wall(double startX, double startY, double endX, double endY, double thickness, Color color) {
+    public Surface(double startX, double startY, double endX, double endY, double thickness, Color color) {
         super(startX, startY, endX, endY);
         setStroke(color);
         this.thickness = thickness;
@@ -44,13 +45,13 @@ public class Wall extends Line {
         return tangentVector;
     }
 
-    public boolean isColliding(PhysicsCircle circle) {
-        double circleX = circle.getCenterX();
-        double circleY = circle.getCenterY();
-        double radius = circle.getRadius();
+    public boolean isColliding(Particle particle) {
+        double centerX = particle.getCenterX();
+        double centerY = particle.getCenterY();
+        double radius = particle.getRadius();
 
         double wallLengthSquared = (tangentVector.getX() * tangentVector.getX()) + (tangentVector.getY() * tangentVector.getY());
-        double t = tangentVector.dot(circleX - getStartX(), circleY - getStartY()) / wallLengthSquared;
+        double t = tangentVector.dot(centerX - getStartX(), centerY - getStartY()) / wallLengthSquared;
 
         if (t < 0 || t > 1) {
             return false;
@@ -59,7 +60,7 @@ public class Wall extends Line {
         double closestPointX = getStartX() + t * tangentVector.getX() - thickness / 2 * normalVector.getX();
         double closestPointY = getStartY() + t * tangentVector.getY() - thickness / 2 * normalVector.getY();
 
-        double distanceSquared = Math.pow(circleX - closestPointX, 2) + Math.pow(circleY - closestPointY, 2);
+        double distanceSquared = Math.pow(centerX - closestPointX, 2) + Math.pow(centerY - closestPointY, 2);
 
         return distanceSquared  <= radius * radius;
     }

@@ -1,3 +1,5 @@
+package ParticleSimulation;
+
 import javafx.application.Application;
 import javafx.animation.AnimationTimer;
 import javafx.stage.Stage;
@@ -8,29 +10,26 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
-
-import java.util.Random;
 import java.util.ArrayList;
+import Shapes.Square;
 
 
 public class Main extends Application {
 
-    private static Random random = new Random();
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
 
     private double mouseX;
     private double mouseY;
 
-    private ArrayList<PhysicsCircle> circles = new ArrayList<>();
-    private ArrayList<Wall> walls = new ArrayList<>();
-    private Physics physics = new Physics(circles, walls);
-    private Group group = new Group();
     private int numberOfParticles = 0;
     private int hue = 0;
     private boolean isSpawning = false;
     private double frameCount = 0;
-   
+    public static double particleRadius = 5;
+    public static Group group = new Group();
+    private PhysicsWorld physicsSimulation = new PhysicsWorld();
+    
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -45,6 +44,7 @@ public class Main extends Application {
             if (event.getButton() == MouseButton.SECONDARY) {
                 isSpawning = true;
             }
+            //createPartical(105, 55, 1, particleRadius); 
  
         });
 
@@ -55,8 +55,10 @@ public class Main extends Application {
         });
 
         
-
-        drawSquare(100, 50, 400, Color.GREEN);
+        Square newSquare = new Square(100, 50, 400, Color.GREEN);
+        newSquare.drawSquare();
+        physicsSimulation.addShape(newSquare);
+        //drawCircle(300,300,250,20,Color.WHITE);
 
         
 
@@ -65,10 +67,10 @@ public class Main extends Application {
             public void handle(long now) {
                 frameCount++;
                 if (isSpawning && frameCount % 5 == 0) {
-                    createPartical(150, 70, 1, 10); 
+                    createPartical(110, 65, 1, particleRadius);
                 }
-                physics.updatePhysics(10);
-                uiText.setText("Particals: "+ numberOfParticles);
+                physicsSimulation.updatePhysics(10);
+                uiText.setText("Particles: "+ numberOfParticles);
             }
         };
         timer.start();
@@ -83,28 +85,10 @@ public class Main extends Application {
         launch(args);
     }
 
-    public void drawSquare(double startX,double startY,double size,Color color){
-        
-        double[] xCorners = {startX, startX + size, startX + size, startX};
-        double[] yCorners = {startY, startY, startY + size, startY + size};
-
-        for(int i = 0; i < 4;i++){
-            double x1 = xCorners[i];
-            double y1 = yCorners[i];
-            double x2 = xCorners[(i + 1) % 4];
-            double y2 = yCorners[(i + 1) % 4];
-
-            Wall wall = new Wall(x1, y1, x2, y2, 8 , color);
-            walls.add(wall);
-            group.getChildren().add(wall);
-        }
-    }
-
-
 
     public void createPartical(double locationX, double locationY, double mass, double radius){      
         Color particleColor = getParticleColor();
-        PhysicsCircle partical = new PhysicsCircle(locationX, locationY, radius, mass, particleColor);
+        Particle partical = new Particle(locationX, locationY, radius, mass, particleColor);
 
         partical.setOnMousePressed(event -> {
             mouseX = event.getSceneX() - partical.getCenterX();
@@ -117,10 +101,10 @@ public class Main extends Application {
             partical.setCenterY(event.getSceneY() - mouseY);
         });
 
-        partical.setVelocity(8,3);
+        partical.setVelocity(1,1);
 
         group.getChildren().add(partical);
-        physics.addCircle(partical);
+        physicsSimulation.addParticle(partical);
         numberOfParticles++;      
     }
 

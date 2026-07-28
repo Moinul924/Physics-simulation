@@ -4,8 +4,8 @@
     ],
     "code-runner.runInTerminal": true,
     "code-runner.executorMap": {
-        "java": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Set-Location -LiteralPath '$workspaceRoot'; javac --module-path 'lib' --add-modules javafx.controls '$fileName'; java --module-path 'lib' --add-modules javafx.controls --enable-native-access=javafx.graphics '$fileNameWithoutExt'\""
-    },
+    "java": "cd \"$workspaceRoot\" && javac --module-path lib --add-modules javafx.controls ParticleSimulation/*.java Shapes/*.java && java --module-path lib --add-modules javafx.controls --enable-native-access=javafx.graphics ParticleSimulation.Main"
+},
     "files.exclude": {
     "**/*.class": true
 }
