@@ -1,8 +1,10 @@
 package ParticleSimulation;
 import java.util.ArrayList;
 import java.util.List;
-
+import javafx.scene.canvas.GraphicsContext;
 import Shapes.Shape;
+
+
 
 
 public class PhysicsWorld {
@@ -14,6 +16,13 @@ public class PhysicsWorld {
     public PhysicsWorld(){
     }
 
+    public List<Particle> getParticles() {
+        return particles;
+    }
+
+    public void clearParticles() {
+        particles.clear();
+    }
 
     public void addParticle(Particle particle) {
         particles.add(particle);
@@ -23,13 +32,21 @@ public class PhysicsWorld {
         shapes.add(shape);
     }
 
+    public void drawParticles(GraphicsContext gc) {
+        for (Particle particle : particles) {
+            gc.setFill(particle.getColor());
+            gc.fillOval(particle.getCenterX() - particle.getRadius(), particle.getCenterY() - particle.getRadius(), 2 * particle.getRadius(), 2 * particle.getRadius());
+        }
+    }
+
 
     public void updatePhysics(int subSteps) {
         double deltaTime = 1.0 / subSteps;
         for (int i = 0; i < subSteps; i++) {
             updatePositionAndApplyGravity(deltaTime);
-            checkSurfaceCollisions();
+            partitionSpace();
             checkParticleCollisions();
+            checkSurfaceCollisions();
         }
     }
     
@@ -46,14 +63,16 @@ public class PhysicsWorld {
     
     public void updatePositionAndApplyGravity(double deltaTime) {
         for (Particle particle : particles) { 
+            double particleVelocityX = Math.abs(particle.getVelocityX()) < 0.3 ? 0 : particle.getVelocityX();
+            double particleVelocityY = Math.abs(particle.getVelocityY()) < 0.3 ? 0 : particle.getVelocityY();
             particle.setVelocityY(particle.getVelocityY() + gravity * deltaTime);
-            particle.setCenterX(particle.getCenterX() + particle.getVelocityX()*deltaTime);
-            particle.setCenterY(particle.getCenterY() + particle.getVelocityY()*deltaTime);
+            particle.setCenterX(particle.getCenterX() + particleVelocityX * deltaTime);
+            particle.setCenterY(particle.getCenterY() + particleVelocityY * deltaTime);
+
         }
     }
 
     public void checkSurfaceCollisions() {
-        partitionSpace();
         for(Shape shape : shapes){   
             List<Surface> surfaces = shape.getSurfaces(); 
             for (Particle particle : particles) {
@@ -128,21 +147,21 @@ public class PhysicsWorld {
                 double radiusSum = particle1.getRadius() + particle2.getRadius();
                 
                 if (distanceSquared <= (radiusSum * radiusSum)) {
-                    Vector impactVector = new Vector(dx, dy);
-                    resolveOverlappingParticles(particle1, particle2, impactVector);
+                    double impactVectorX = dx;
+                    double impactVectorY = dy;
+                    resolveOverlappingParticles(particle1, particle2, impactVectorX, impactVectorY);
                 }
             }
         }
     }
 
     public void checkParticleCollisions() {
-        partitionSpace();
         for(Shape shape:shapes){
             findGridCollisions(shape.getGridPartition());
         }
     }
 
-    public void findGridCollisions(List<Particle>[][] gridPartition){
+     public void findGridCollisions(List<Particle>[][] gridPartition){
         int[][] neighborOffsets = {
             {1, 0}, {-1, 1}, {0, 1}, {1, 1} 
         };
@@ -162,6 +181,7 @@ public class PhysicsWorld {
             }
         }
     }
+
 
     public void checkSameGridCollisions(List<Particle> gridObjects){
         for(int i = 0; i < gridObjects.size(); i++){
@@ -192,19 +212,13 @@ public class PhysicsWorld {
         }
     }
     
-    public void resolveWallOverlap(Particle particle, Surface wall) {
-        double normalX = wall.getWallNormalX();
-        double normalY = wall.getWallNormalY();
+    public void resolveWallOverlap(Particle particle, Surface surface) {
+        double normalX = -surface.getSurfaceNormalX();
+        double normalY = -surface.getSurfaceNormalY();
         
-        Vector particleToWall = new Vector(particle.getCenterX() - wall.getStartX(), particle.getCenterY() - wall.getStartY());
-        
-        if (particleToWall.dot(normalX, normalY) < 0) {
-            normalX = -normalX;
-            normalY = -normalY;
-        }
-        
-        // Nudge the particle out along the normal until it is physically out of the wall
-        while (wall.isColliding(particle)) {
+
+        // Nudge the particle out along the normal until it is physically out of the surface
+        while (surface.isColliding(particle)) {
             particle.setCenterX(particle.getCenterX() + normalX * 0.5);
             particle.setCenterY(particle.getCenterY() + normalY * 0.5);
         }
@@ -219,23 +233,12 @@ public class PhysicsWorld {
         return distanceSquared <= (radiusSum)*(radiusSum);
     }
     
-    public void bounceOffSurface(Particle particle, Surface wall) {
-        double normalX = wall.getWallNormalX();
-        double normalY = wall.getWallNormalY();
+    public void bounceOffSurface(Particle particle, Surface surface) {
+        double normalX = -surface.getSurfaceNormalX();
+        double normalY = -surface.getSurfaceNormalY();
         
-        Vector particleToWall = new Vector(particle.getCenterX() - wall.getStartX(), particle.getCenterY() - wall.getStartY());
-        
-        if (particleToWall.dot(normalX, normalY) < 0) {
-            normalX = -normalX;
-            normalY = -normalY;
-        }
-        
-        
-        
-        Vector particleVelocity = particle.getVelocity();
-        
-        double speedAlongNormal = particleVelocity.dot(normalX, normalY);
-        double speedAlongTangent = particleVelocity.dot(-normalY, normalX);
+        double speedAlongNormal = particle.getVelocityX() * normalX + particle.getVelocityY() * normalY;
+        double speedAlongTangent = particle.getVelocityX() * normalY - particle.getVelocityY() * normalX;
         
         if (speedAlongNormal < 0) {
             double restitution = particle.getCoefficientOfRestitution();
@@ -245,30 +248,32 @@ public class PhysicsWorld {
             double newVelocityY = (newSpeedAlongNormal * normalY) + (speedAlongTangent * -normalX);
             
             particle.setVelocity(newVelocityX, newVelocityY);
-        }
+        }   
     }
     
     public void resolveParticleCollision(Particle particle1, Particle particle2) {
-        Vector impactVector = new Vector(particle2.getCenterX() - particle1.getCenterX(),
-                                        particle2.getCenterY() - particle1.getCenterY());
-        resolveOverlappingParticles(particle1, particle2, impactVector);                                
-        double distanceSquared = Math.pow(impactVector.getX(), 2) + Math.pow(impactVector.getY(), 2);    
-        
-        Vector finalVelocityparticle1 = claculateFinalVelocity(particle1, particle2, impactVector,distanceSquared);
-        Vector finalVelocityparticle2 = claculateFinalVelocity(particle2, particle1, impactVector.scale(-1),distanceSquared);
-        particle1.setVelocity(finalVelocityparticle1.getX(), finalVelocityparticle1.getY());
-        particle2.setVelocity(finalVelocityparticle2.getX(), finalVelocityparticle2.getY());
+        double impactVX = particle2.getCenterX() - particle1.getCenterX();
+        double impactVectorY = particle2.getCenterY() - particle1.getCenterY();
+        resolveOverlappingParticles(particle1, particle2, impactVX, impactVectorY);
+        double distanceSquared = impactVX * impactVX + impactVectorY * impactVectorY;    
+            
+        double[] finalVelocityparticle1 = calculateFinalVelocity(particle1, particle2, impactVX, impactVectorY, distanceSquared);
+        double[] finalVelocityparticle2 = calculateFinalVelocity(particle2, particle1, -impactVX, -impactVectorY, distanceSquared);
+        particle1.setVelocity(finalVelocityparticle1[0], finalVelocityparticle1[1]);
+        particle2.setVelocity(finalVelocityparticle2[0], finalVelocityparticle2[1]);
         
     }
     
-    public void resolveOverlappingParticles(Particle particle1, Particle particle2,Vector impactVector) {
-        double distance = impactVector.magnitude();
+    public void resolveOverlappingParticles(Particle particle1, Particle particle2,double impactVX, double impactVectorY) {
+        double distance = Math.sqrt(impactVX * impactVX + impactVectorY * impactVectorY);
         if (distance == 0) return;
         double overlap = (particle1.getRadius() + particle2.getRadius()) - distance;
         
         if (overlap > 0) {
-            double separationX = (impactVector.getX() / distance) * (overlap / 2);
-            double separationY = (impactVector.getY() / distance) * (overlap / 2);
+
+            double relaxation = 0.8;
+            double separationX = (impactVX / distance) * (overlap / 2)*relaxation;
+            double separationY = (impactVectorY / distance) * (overlap / 2)*relaxation;
             
             particle1.setCenterX(particle1.getCenterX() - separationX);
             particle1.setCenterY(particle1.getCenterY() - separationY);
@@ -277,34 +282,28 @@ public class PhysicsWorld {
         }
     }
     
-    public Vector claculateFinalVelocity(Particle targetparticle, Particle otherparticle, Vector impactVector, double distanceSquared) {     
+    public double[] calculateFinalVelocity(Particle targetparticle, Particle otherparticle,double  impactVX,double impactVectorY, double distanceSquared) {     
         double restitution = targetparticle.getCoefficientOfRestitution() * otherparticle.getCoefficientOfRestitution();  
-        Vector relativeVelocity = targetparticle.getVelocity().subtract(otherparticle.getVelocity());
-        
-        double dotProduct = relativeVelocity.dot(impactVector.getX(), impactVector.getY());
-        
-        if(relativeVelocity.magnitude() < 0.5){
-            return targetparticle.getVelocity();
-        }
-        // FIX 1: The Separation Check. 
-        // If the dot product is less than 0, the particles are already moving apart. 
-        // We return immediately so we don't accidentally suck them back together!
-        if (dotProduct < 0) {
-            return targetparticle.getVelocity();
-        }
-        
-        // FIX 2: We removed the "relativeVelocity.magnitude() < 0.5" block entirely so 
-        // resting particles can still gently push off of one another.
+        double relativeVelocityX = targetparticle.getVelocityX() - otherparticle.getVelocityX();
+        double relativeVelocityY = targetparticle.getVelocityY() - otherparticle.getVelocityY();
 
+        double dotProduct = relativeVelocityX * impactVX + relativeVelocityY * impactVectorY;
+       
+        if (dotProduct < 0) {
+            return new double[]{targetparticle.getVelocityX(), targetparticle.getVelocityY()};
+        }
+        
+     
         double totalMass = targetparticle.getMass() + otherparticle.getMass();
         
         // FIX 3: Use (1 + restitution) to correctly apply the bounce multiplier.
         double massRatio = (1 + restitution) * otherparticle.getMass() / totalMass;
         
         double scalar = massRatio * (dotProduct / distanceSquared);
-        Vector velocityChange = impactVector.scale(scalar);
+        double velocityChangeX = scalar * impactVX;
+        double velocityChangeY = scalar * impactVectorY;
         
-        return targetparticle.getVelocity().subtract(velocityChange);
+        return new double[]{targetparticle.getVelocityX() - velocityChangeX, targetparticle.getVelocityY() - velocityChangeY};
     }
         
     

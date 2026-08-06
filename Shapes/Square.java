@@ -22,7 +22,7 @@ public class Square extends Shape {
             double x2 = xCorners[(i + 1) % 4];
             double y2 = yCorners[(i + 1) % 4];
 
-            Surface surface = new Surface(x1, y1, x2, y2, 0, color);
+            Surface surface = new Surface(x1, y1, x2, y2, 1, color);
             surfaces.add(surface);
             Main.group.getChildren().add(surface);
         }

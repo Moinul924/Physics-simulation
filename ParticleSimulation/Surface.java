@@ -21,27 +21,27 @@ public class Surface extends Line {
         setStrokeWidth(thickness);
     }
 
-    public double getWallNormalX() {
+    public double getSurfaceNormalX() {
         return normalVector.getX();
     }
 
-    public double getWallNormalY() {
+    public double getSurfaceNormalY() {
         return normalVector.getY();
     }
 
-    public double getWallTangentX() {
+    public double getSurfaceTangentX() {
         return tangentVector.getX();
     }
 
-    public double getWallTangentY() {
+    public double getSurfaceTangentY() {
         return tangentVector.getY();
     }
 
-    public Vector getWallNormal() {
+    public Vector getSurfaceNormal() {
         return normalVector;
     }
 
-    public Vector getWallTangent() {
+    public Vector getSurfaceTangent() {
         return tangentVector;
     }
 
@@ -50,8 +50,8 @@ public class Surface extends Line {
         double centerY = particle.getCenterY();
         double radius = particle.getRadius();
 
-        double wallLengthSquared = (tangentVector.getX() * tangentVector.getX()) + (tangentVector.getY() * tangentVector.getY());
-        double t = tangentVector.dot(centerX - getStartX(), centerY - getStartY()) / wallLengthSquared;
+        double surfaceLengthSquared = (tangentVector.getX() * tangentVector.getX()) + (tangentVector.getY() * tangentVector.getY());
+        double t = tangentVector.dot(centerX - getStartX(), centerY - getStartY()) / surfaceLengthSquared;
 
         if (t < 0 || t > 1) {
             return false;
